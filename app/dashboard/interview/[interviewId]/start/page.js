@@ -3,13 +3,32 @@ import { use, useState, useEffect } from "react";
 import { db } from "../../../../../utils/db";
 import { MockInterview } from "../../../../../utils/schema";
 import { eq } from "drizzle-orm";
-import { Lightbulb } from "lucide-react";
+import { AlertCircle, Lightbulb, Volume2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import RecordAudio from "../../../../_components/dashboard/RecordAudio";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const Page = ({ params }) => {
   const [interviewData, setInterviewData] = useState();
   const [interviewProblems, setInterviewProblems] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const resolvedParams = use(params);
+
+  const textToSpeech = (text) => {
+    if ("speechSynthesis" in window) {
+      const speech = new SpeechSynthesisUtterance(text);
+      window.speechSynthesis.speak(speech);
+    } else {
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>
+          Your browser doesnt support Text to Speech
+        </AlertDescription>
+      </Alert>;
+    }
+  };
+
   useEffect(() => {
     const getInterviewDetails = async () => {
       const result = await db
@@ -60,15 +79,24 @@ const Page = ({ params }) => {
               <h2 className="w-full h-auto">
                 {interviewData && interviewProblems[currentQuestion]?.question}
               </h2>
+              <Volume2
+                onClick={() =>
+                  textToSpeech(interviewProblems[currentQuestion]?.question)
+                }
+                className="cursor-pointer"
+              />
             </div>
             <div className="w-full h-auto p-5 border border-teal-300 bg-teal-100  rounded-lg">
               <div className="flex gap-2 items-center pb-2">
                 <Lightbulb className="text-teal-500" />
-                <h2 className="text-teal-500 text-sm">
-                  Enable Webcam and Microphone to start Interview
-                </h2>
+                <h2 className="text-teal-500 text-sm">Note:</h2>
               </div>
               <ul className="flex flex-col list-disc">
+                <li className="block text-teal-500 text-sm">
+                  {" "}
+                  Enable Webcam and Microphone to start Interview
+                </li>
+
                 <li className="block text-teal-500 text-sm">
                   Interview will have 5 questions which you can answer
                 </li>
@@ -82,8 +110,8 @@ const Page = ({ params }) => {
               </ul>
             </div>
           </div>
-          <div className="w-full h-auto flex flex-col gap-2 border bg-secondary rounded-lg p-2 md:p-4 lg:p-8">
-            hi
+          <div className="w-full h-auto flex flex-col gap-2 border bg-black rounded-lg p-2 md:p-4 lg:p-8 md:pb-2 lg:pb-2">
+            <RecordAudio />
           </div>
         </div>
       </div>
